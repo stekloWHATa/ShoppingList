@@ -1,5 +1,7 @@
 package com.mogilkin.shoppinglist.presentation
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.mogilkin.shoppinglist.data.ShopListRepositoryImpl
 import com.mogilkin.shoppinglist.domain.AddShopItemUseCase
@@ -14,8 +16,27 @@ class ShopItemViewModel : ViewModel() {
     private val getShopItemUseCase = GetShopItemUseCase(repository)
     private val editShopItemUseCase = EditShopItemUseCase(repository)
 
+
+    //делаем так, когда понимаем, что объект, который прилетит в observer никак использоваться в активити не будет
+    private val _canCloseActivity = MutableLiveData<Unit>()
+    val canCloseActivity : LiveData<Unit>
+        get() = _canCloseActivity
+
+    private val _errorInputName = MutableLiveData<Boolean>() //для вьюмодели
+    val errorInputName : LiveData<Boolean> //для активити
+        get() = _errorInputName
+
+    private val _errorInputCount = MutableLiveData<Boolean>()
+    val errorInputCount : LiveData<Boolean>
+        get() = _errorInputCount
+
+    private val _shopItem = MutableLiveData<ShopItem>()
+    val shopItem : LiveData<ShopItem>
+        get() = _shopItem
+
     fun getShopItem(shopItemId: Int){
         val item = getShopItemUseCase.getShopItem(shopItemId)
+        _shopItem.value = item
     }
 
     fun addShopItem(inputName: String?, inputCount: String?){
@@ -24,8 +45,8 @@ class ShopItemViewModel : ViewModel() {
         val fieldsValid = validateInput(name, count)
         if (fieldsValid){
             addShopItemUseCase.addShopItem(ShopItem(name, count, true))
+            shouldCloseScreen()
         }
-
     }
 
     fun editShopItem(inputName: String?, inputCount: String?){
@@ -33,7 +54,11 @@ class ShopItemViewModel : ViewModel() {
         val count = parseCount(inputCount)
         val fieldsValid = validateInput(name, count)
         if (fieldsValid) {
-            editShopItemUseCase.editShopItem(ShopItem(name, count, true))
+            _shopItem.value?.let {
+                    editShopItemUseCase.editShopItem(it)
+                    shouldCloseScreen()
+                }//сработает только тогда, когда там есть значение
+
         }
     }
 
@@ -48,13 +73,23 @@ class ShopItemViewModel : ViewModel() {
     private fun validateInput(name: String, count: Int) : Boolean{
         var result = true
         if (name.isBlank()) {
-            //TODO: show error input name
+            _errorInputName.value = true
             result = false
         }
         if (count <= 0){
-            //TODO: show error input count
+            _errorInputCount.value = true
             result = false
         }
         return result
+    }
+
+    fun resetErrorInputName(){
+        _errorInputName.value = false
+    }
+    fun resetErrorInputCount(){
+        _errorInputCount.value = false
+    }
+    private fun shouldCloseScreen(){
+        _canCloseActivity.value = Unit
     }
 }
