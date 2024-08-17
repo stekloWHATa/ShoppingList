@@ -26,4 +26,5 @@ class ShopListDiffCallback(
         // есть ли в нем какие-либо изменения, дабы РВ понял, нужно его перерисовывать или нет
         return oldList[oldItemPosition] == newList[newItemPosition]
     }
+
 }
