@@ -55,10 +55,10 @@ class ShopItemViewModel : ViewModel() {
         val fieldsValid = validateInput(name, count)
         if (fieldsValid) {
             _shopItem.value?.let {
-                    editShopItemUseCase.editShopItem(it)
+                val item = it.copy()
+                    editShopItemUseCase.editShopItem(item)
                     shouldCloseScreen()
                 }//сработает только тогда, когда там есть значение
-
         }
     }
 
