@@ -14,7 +14,7 @@ object ShopListRepositoryImpl : ShopListRepository{
 
     init {
         for (i in 0..< 10){
-            addShopItem(ShopItem("$i", "$i", Random.nextBoolean()))
+            addShopItem(ShopItem("$i", i, Random.nextBoolean()))
         }
     }
     override fun addShopItem(shopItem: ShopItem) {
