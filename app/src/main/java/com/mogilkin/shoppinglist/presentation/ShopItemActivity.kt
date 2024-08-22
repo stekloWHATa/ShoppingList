@@ -14,15 +14,6 @@ import com.mogilkin.shoppinglist.R
 import com.mogilkin.shoppinglist.domain.ShopItem
 
 class ShopItemActivity : AppCompatActivity() {
-
-    private lateinit var viewModel: ShopItemViewModel
-
-    private lateinit var tilName: TextInputLayout
-    private lateinit var tilCount: TextInputLayout
-    private lateinit var etName: EditText
-    private lateinit var etCount: EditText
-    private lateinit var buttonSave: Button
-
     private var screenMode = MODE_UNKNOWN
     private var shopItemId = ShopItem.UNDEFINED_ID
 
@@ -30,41 +21,20 @@ class ShopItemActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_shop_item)
         parseIntent()
-        viewModel = ViewModelProvider(this)[ShopItemViewModel::class.java]
-        initViews()
-        when (screenMode) {
-            MODE_EDIT -> launchEditMode()
-            MODE_ADD -> launchAddMode()
+        launchRightMode()
+    }
+
+    private fun launchRightMode(){
+        val fragment = when (screenMode) {
+            MODE_EDIT -> ShopItemFragment.newInstanceEditItem(shopItemId)
+            MODE_ADD -> ShopItemFragment.newInstanceAddItem()
+            else -> throw RuntimeException("Unknown screen mode: $screenMode")
         }
+        //добавляем фрагмент к активити из кода
+        supportFragmentManager.beginTransaction()//получаем экземпляр класса FragmentManager и добавляем фрагмент в контейнер (делается в рамках транзакции)
+            .replace(R.id.shop_item_container, fragment) //сначала контейнер, затем фрагмент
+            .commit() //вызываем этот метод обязательно после всех транзакций, он запускает их на выполнение
     }
-
-    private fun launchEditMode() {
-        viewModel.getShopItem(shopItemId) //получаю конкретный, нужный мне итем
-        viewModel.shopItem.observe(this) {
-            etName.text =
-                Editable.Factory.getInstance().newEditable(it.name)
-            etCount.text =
-                Editable.Factory.getInstance().newEditable(it.count.toString())
-
-        }
-        setupButtonClickListenerForEditMode()
-        setupTextChangedListeners()
-    }
-
-    private fun launchAddMode() {
-        setupButtonClickListenerForAddMode()
-        setupTextChangedListeners()
-
-    }
-
-    private fun initViews() {
-        tilName = findViewById(R.id.til_name)
-        tilCount = findViewById(R.id.til_count)
-        etName = findViewById(R.id.et_name)
-        etCount = findViewById(R.id.et_count)
-        buttonSave = findViewById(R.id.save_button)
-    }
-
     private fun parseIntent() {
         if (!intent.hasExtra(EXTRA_SCREEN_MODE)) {
             throw RuntimeException("Param screen mode is absent")
@@ -80,71 +50,6 @@ class ShopItemActivity : AppCompatActivity() {
             }
             shopItemId = intent.getIntExtra(EXTRA_SHOP_ITEM_ID, ShopItem.UNDEFINED_ID)
         }
-    }
-
-    private fun setupButtonClickListenerForAddMode(){
-        buttonSave.setOnClickListener {
-            checkNameForCorrect()
-            checkCountForCorrect()
-            val inputName = etName.text
-            val inputCount = etCount.text
-            viewModel.addShopItem(inputName.toString(), inputCount.toString())
-            viewModel.canCloseActivity.observe(this){
-                finish()
-            }
-        }
-    }
-
-    private fun setupButtonClickListenerForEditMode() {
-        buttonSave.setOnClickListener {
-            checkNameForCorrect() //при нажатии на кнопку проверяю имя на корректность
-            checkCountForCorrect() //сейм хуйня
-            viewModel.editShopItem(etName.text.toString(), etCount.text.toString())
-            viewModel.canCloseActivity.observe(this) {
-                finish()
-            }
-        }
-    }
-
-    private fun checkNameForCorrect() {
-        viewModel.errorInputName.observe(this) {
-            tilName.error = if (viewModel.errorInputName.value == true){
-                getString(R.string.error_name_message)
-            } else{
-                null
-            }
-        }
-    }
-
-    private fun checkCountForCorrect() {
-        viewModel.errorInputCount.observe(this) {
-            tilCount.error = if (viewModel.errorInputCount.value == true){
-                getString(R.string.error_count_message)
-            } else{
-                null
-            }
-        }
-    }
-
-    private fun setupTextChangedListeners() {
-        etName.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                viewModel.resetErrorInputName()
-            }
-
-            override fun afterTextChanged(p0: Editable?) {}
-        })
-        etCount.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                viewModel.resetErrorInputCount()
-            }
-
-            override fun afterTextChanged(p0: Editable?) {}
-        })
     }
 
     companion object {

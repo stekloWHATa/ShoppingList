@@ -1,5 +1,6 @@
 package com.mogilkin.shoppinglist.presentation
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -55,7 +56,7 @@ class ShopItemViewModel : ViewModel() {
         val fieldsValid = validateInput(name, count)
         if (fieldsValid) {
             _shopItem.value?.let {
-                val item = it.copy()
+                val item = it.copy(name = name, count = count)
                     editShopItemUseCase.editShopItem(item)
                     shouldCloseScreen()
                 }//сработает только тогда, когда там есть значение
