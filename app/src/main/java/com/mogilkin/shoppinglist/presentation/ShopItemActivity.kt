@@ -13,7 +13,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.mogilkin.shoppinglist.R
 import com.mogilkin.shoppinglist.domain.ShopItem
 
-class ShopItemActivity : AppCompatActivity() {
+class ShopItemActivity : AppCompatActivity(), ShopItemFragment.OnEditingFinishedListener {
     private var screenMode = MODE_UNKNOWN
     private var shopItemId = ShopItem.UNDEFINED_ID
 
@@ -21,7 +21,13 @@ class ShopItemActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_shop_item)
         parseIntent()
-        launchRightMode()
+        if(savedInstanceState == null){
+            launchRightMode()
+        }
+    }
+
+    override fun onEditingFinished() {
+        finish()
     }
 
     private fun launchRightMode(){
