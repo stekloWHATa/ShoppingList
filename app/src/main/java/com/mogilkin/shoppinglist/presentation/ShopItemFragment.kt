@@ -16,13 +16,20 @@ import com.google.android.material.textfield.TextInputLayout
 import com.mogilkin.shoppinglist.R
 import com.mogilkin.shoppinglist.databinding.FragmentShopItemBinding
 import com.mogilkin.shoppinglist.domain.ShopItem
+import javax.inject.Inject
 
 class ShopItemFragment() : Fragment() {
     private lateinit var viewModel: ShopItemViewModel
     private lateinit var onEditingFinishedListener : OnEditingFinishedListener
+    @Inject
+    lateinit var viewModelFactory: ShopListViewModelFactory
 
     private var screenMode : String = MODE_UNKNOWN
-    private var shopItemId : Int = ShopItem.UNDEFINED_ID
+    private var shopItemId : Int = ShopItem.ID_FOR_GENERATE
+
+    private val component by lazy {
+        (requireActivity().application as ShopApp).component
+    }
 
     private var _binding: FragmentShopItemBinding? = null
     private val binding: FragmentShopItemBinding
@@ -34,6 +41,7 @@ class ShopItemFragment() : Fragment() {
     }
 
     override fun onAttach(context: Context) {//в качестве параметра прилетает та активити, к которой прикреплен фрагмент
+        component.inject(this)
         super.onAttach(context)
         if (context is OnEditingFinishedListener){
             onEditingFinishedListener = context
@@ -53,7 +61,7 @@ class ShopItemFragment() : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {//в качестве параметра как раз и прилетает вью, которую мы создаем в onCreateView
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this)[ShopItemViewModel::class.java]
+        viewModel = ViewModelProvider(this, viewModelFactory)[ShopItemViewModel::class.java]
         binding.viewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
         when (screenMode) {
@@ -89,7 +97,7 @@ class ShopItemFragment() : Fragment() {
             if (!args.containsKey(SHOP_ITEM_ID)) {
                 throw RuntimeException("Param shop item id is absent")
             }
-            shopItemId = args.getInt(SHOP_ITEM_ID, ShopItem.UNDEFINED_ID)
+            shopItemId = args.getInt(SHOP_ITEM_ID, ShopItem.ID_FOR_GENERATE)
         }
     }
 
