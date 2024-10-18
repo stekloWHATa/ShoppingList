@@ -1,13 +1,14 @@
 package com.mogilkin.shoppinglist.domain
 
+
 data class ShopItem(
+    var id: Int = ID_FOR_GENERATE,
     val name: String,
     val count: Int,
-    var enabled: Boolean,
-    var id: Int = UNDEFINED_ID
+    var enabled: Boolean
 )
 {
     companion object{
-        const val UNDEFINED_ID = -1
+        const val ID_FOR_GENERATE = 0
     }
 }
